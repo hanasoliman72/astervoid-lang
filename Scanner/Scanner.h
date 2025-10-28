@@ -27,25 +27,24 @@ private:
     std::vector<Token> tokens;
     int start = 0;// WHERE THE CURRENT TOKEN STARTS
     int current = 0;// WHERE YOU ARE NOW IN THE TEXT
-    int line = 0;// CURRENT LINE NUMBER
-    int col = 0;// COLUMN OF THE CURRENT CHAR
-    int startCol = 0;// COLUMN AT TOKEN START (CURRENT LINE)
+    int line = 1;// CURRENT LINE NUMBER
+    int col = 1;// COLUMN OF THE CURRENT CHAR
+    int startCol = 1;// COLUMN AT TOKEN START (CURRENT LINE)
 
     bool isAtEnd() const;
     char advance();
     char peek() const;
     char peekNext() const;
     bool match(char expected);
-    void addTokenVec(TokenType type, const std::string &lexeme, const std::string &literal = "");
     Token makeToken(TokenType type, const std::string &lexeme, const std::string &literal = "");
     Token scanToken();
     Token stringLiteral();
-    Token number(char firstChar);
-    Token identifier(char firstChar);
+    Token number();
+    Token identifier();
     bool isDigit(char c) const;
     bool isAlpha(char c) const;
-    bool isAlphaNumeric(char c) const;
     TokenType identifierType(const std::string &s);
+    void skipWhitespace();
 };
 
 #endif //SCANNER_H

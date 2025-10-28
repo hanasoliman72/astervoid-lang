@@ -1,0 +1,6 @@
+#launch <bigbang> 
+vacuum milkyway() {
+
+shine("Hello, Galaxy!\n");
+
+}
