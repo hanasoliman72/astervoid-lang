@@ -97,7 +97,6 @@ Token Scanner::scanToken() {
             return makeToken(TokenType::EQUAL, "=");
         case '>':
             if(match('=')) return makeToken(TokenType::GREATER_EQ, ">=");
-            if(current >= 0 && source[current - 1] == 'g') return makeToken(TokenType::ARROW, "<");
             return makeToken(TokenType::GREATER, ">");
         case '<':
             if(match('=')) return makeToken(TokenType::LESS_EQ, "<=");
