@@ -185,7 +185,7 @@ TokenType Scanner::identifierType(const std::string &s) {
         {"milkyway", TokenType::MILKYWAY},
         {"mass", TokenType::MASS},
         {"flux", TokenType::FLUX},
-        {"quantum", TokenType::QUANTAM},
+        {"quantum", TokenType::QUANTUM},
         {"nebula", TokenType::NEBULA},
         {"star", TokenType::STAR},
         {"truth", TokenType::TRUTH},
