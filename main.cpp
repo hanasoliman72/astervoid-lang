@@ -1,5 +1,8 @@
-#include <bits/stdc++.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include "implementation/Scanner/Scanner.h"
 #include "implementation/Parser/Parser.h"
@@ -22,7 +25,6 @@ std::string tokenTypeToString(TokenType type) {
         // ONE OR TWO CHAR TOKENS
         case TokenType::COMMENT: return "COMMENT";
         case TokenType::BLOCK_COMMENT: return "BLOCK_COMMENT";
-        case TokenType::ARROW: return "ARROW";
         case TokenType::PLUS: return "PLUS";
         case TokenType::PLUS_PLUS: return "PLUS_PLUS";
         case TokenType::PLUS_EQ: return "PLUS_EQ";
@@ -43,7 +45,9 @@ std::string tokenTypeToString(TokenType type) {
         case TokenType::LESS: return "LESS";
         case TokenType::LESS_EQ: return "LESS_EQ";
         case TokenType::AND: return "AND";
+        case TokenType::BIT_AND: return "BIT_AND";
         case TokenType::OR: return "OR";
+        case TokenType::BIT_OR: return "BIT_OR";
         case TokenType::XOR: return "XOR";
 
         // LITERALS
@@ -89,7 +93,6 @@ std::string tokenTypeToString(TokenType type) {
 
         // SPECIAL
         case TokenType::END_OF_FILE: return "END_OF_FILE";
-        case TokenType::NEW_LINE: return "NEW_LINE";
         case TokenType::ERROR: return "ERROR";
 
         default:
@@ -124,13 +127,13 @@ int main(int argc, char* argv[]) {
     for (const auto &token : tokens) {
         std::cout << token.lexeme << "-----> (" << tokenTypeToString(token.type) << ")\n";
     }
-    try {
-        Parser parser(tokens);
-        auto program = parser.parseProgram();
-        std::cout << "Parsing successful!\n";
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << "\n";
-    }
+    // try {
+    //     Parser parser(tokens);
+    //     auto program = parser.parseProgram();
+    //     std::cout << "Parsing successful!\n";
+    // } catch (const std::exception& e) {
+    //     std::cerr << "Error: " << e.what() << "\n";
+    // }
 
     // if (argc < 2) {
     //     std::cerr << "Usage: CompilerProject.exe <source_file>\n";

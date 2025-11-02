@@ -39,9 +39,11 @@ private:
     bool match(char expected);
     Token makeToken(TokenType type, const std::string &lexeme, const std::string &literal = "");
     Token scanToken();
+    Token directive();
     Token stringLiteral();
     Token number();
     Token identifier();
+    Token comment();
     bool isDigit(char c) const;
     bool isAlpha(char c) const;
     TokenType identifierType(const std::string &s);

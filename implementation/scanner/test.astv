@@ -1,1 +1,4 @@
-mass
+#launch <bigbang>
+vacuum milkyway() {
+   flux y = .5;
+}
