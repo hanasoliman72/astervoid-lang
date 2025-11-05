@@ -56,7 +56,6 @@ void Parser::statement() {
     else if (check(TokenType::SUPERNOVA)) supernovaStmt();
     else if (check(TokenType::SHINE)) outputStmt();
     else if (check(TokenType::MOON)) inputStmt();
-    else if (check(TokenType::BLACKHOLE)) returnStmt();
     else if (check(TokenType::DARKMATTER)) darkMatterStmt();
     else if (check(TokenType::WARP)) warpStmt();
     else {
@@ -66,20 +65,20 @@ void Parser::statement() {
 
 // -------------------- Statements --------------------
 void Parser::declaration() {
-    advance(); // type
+    advance(); // Type
     consume(TokenType::IDENTIFIER, "Expected identifier after type");
     declarationTail();
     consume(TokenType::SEMICOLON, "Expected ';' after declaration");
 }
 
 void Parser::declarationTail() {
-    if (match(TokenType::EQUAL)) {
+    if (match(TokenType::EQUAL)) { // Optional
         expr();
     }
 }
 
 void Parser::assignment() {
-    advance(); // identifier
+    advance(); // Identifier
     consume(TokenType::EQUAL, "Expected '=' in assignment");
     expr();
     consume(TokenType::SEMICOLON, "Expected ';' after assignment");
@@ -115,16 +114,13 @@ void Parser::rotateStmt() {
     consume(TokenType::LEFT_PAREN, "Expected '(' after 'rotate'");
 
     forInit();
-    consume(TokenType::SEMICOLON, "Expected ';' 1 in rotate");
+    consume(TokenType::SEMICOLON, "Expected ';' in rotate");
 
     conditionOpt();
-    consume(TokenType::SEMICOLON, "Expected ';' 2 in rotate");
+    consume(TokenType::SEMICOLON, "Expected ';' in rotate");
 
-    // Assignment
-    advance(); // identifier
-    if (match(TokenType::EQUAL)) { // optional '='
-        expr(); // parse the expression if '=' exists
-    }
+    assignmentOpt();
+    consume(TokenType::RIGHT_PAREN, "Expected ')' after rotate header");
 
     consume(TokenType::LEFT_BRACE, "Expected '{' for rotate block");
     statementList();
@@ -134,16 +130,15 @@ void Parser::rotateStmt() {
 void Parser::forInit() {
     if (check(TokenType::MASS) || check(TokenType::FLUX) || check(TokenType::QUANTUM) ||
         check(TokenType::NEBULA) || check(TokenType::STAR) || check(TokenType::TRUTH) || check(TokenType::VACUUM)) {
-        advance(); // type
+        advance(); // Type
         consume(TokenType::IDENTIFIER, "Expected identifier in for-init");
-        if (match(TokenType::EQUAL)) expr(); // optional initializer
+        if (match(TokenType::EQUAL)) expr(); // Optional initializer
     }
     else if (check(TokenType::IDENTIFIER)) {
-        advance(); // variable
+        advance(); // Variable
         consume(TokenType::EQUAL, "Expected '=' in assignment for for-init");
         expr();
     }
-    // ε (do nothing)
 }
 
 void Parser::conditionOpt() {
@@ -151,7 +146,11 @@ void Parser::conditionOpt() {
 }
 
 void Parser::assignmentOpt() {
-    if (!check(TokenType::RIGHT_PAREN)) assignment();
+    if (!check(TokenType::RIGHT_PAREN)) {
+        advance(); // Identifier
+        consume(TokenType::EQUAL, "Expected '=' in assignment");
+        expr();
+    }
 }
 
 void Parser::supernovaStmt() {
@@ -195,24 +194,6 @@ void Parser::blackVoidOpt() {
     }
 }
 
-void Parser::paramList() {
-    if (!check(TokenType::RIGHT_PAREN)) {
-        param();
-        paramListOpt();
-    }
-}
-
-void Parser::paramListOpt() {
-    while (match(TokenType::COMMA)) {
-        param();
-    }
-}
-
-void Parser::param() {
-    advance(); // type
-    consume(TokenType::IDENTIFIER, "Expected parameter name");
-}
-
 void Parser::outputStmt() {
     consume(TokenType::SHINE, "Expected 'shine'");
     consume(TokenType::LEFT_PAREN, "Expected '(' after shine");
@@ -230,11 +211,6 @@ void Parser::inputStmt() {
     consume(TokenType::SEMICOLON, "Expected ';' after moon statement");
 }
 
-void Parser::returnStmt() {
-    consume(TokenType::BLACKHOLE, "Expected 'blackHole'");
-    if (!check(TokenType::SEMICOLON)) expr();
-    consume(TokenType::SEMICOLON, "Expected ';' after blackHole statement");
-}
 
 void Parser::darkMatterStmt() {
     consume(TokenType::DARKMATTER, "Expected 'darkMatter'");

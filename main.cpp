@@ -31,7 +31,7 @@ int main() {
 
         // 2. Parse
         Parser parser(tokens);
-        parser.parse(); // parse() throws on syntax error
+        parser.parse();
 
     } catch (const std::exception& e) {
         std::cerr << "PARSER ERROR: " << e.what() << std::endl;

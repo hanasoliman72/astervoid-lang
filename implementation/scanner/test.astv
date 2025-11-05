@@ -1,4 +1,7 @@
 #launch <bigbang>
 vacuum milkyway() {
+    rotate(mass i = 0 ; i<n ; i = i + 1)
+    {
 
+    }
 }
