@@ -21,6 +21,7 @@ class Scanner {
 public:
     Scanner(const std::string &source);
     std::vector<Token> scanTokens();
+    std::string tokenTypeToString(TokenType type);
 
 private:
     std::string source;

@@ -1,233 +1,324 @@
 #include "Parser.h"
-#include <stdexcept>
-#include <iostream>
 
-Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
+// -------------------- Constructor --------------------
+Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens), current(0) {}
 
-bool Parser::isAtEnd() const { return peek().type == TokenType::END_OF_FILE; }
-const Token& Parser::peek() const { return tokens[current]; }
-const Token& Parser::previous() const { return tokens[current - 1]; }
-const Token& Parser::advance() { if (!isAtEnd()) current++; return previous(); }
-bool Parser::check(TokenType type) const { return !isAtEnd() && peek().type == type; }
+// -------------------- Entry Point --------------------
+void Parser::parse() {
+    try {
+        program();
+        std::cout << "Syntax OK!" << std::endl;
+    } catch (const std::runtime_error& e) {
+        std::cerr << "Syntax Error: " << e.what() << std::endl;
+    }
+}
 
-bool Parser::match(std::initializer_list<TokenType> types) {
-    for (auto type : types) if (check(type)) { advance(); return true; }
+// -------------------- Grammar Rules --------------------
+void Parser::program() {
+    launchDirective();
+    mainFunction();
+    if (!isAtEnd()) {
+        throw std::runtime_error("Syntax Error: Expected end of file at line " + std::to_string(peek().line));
+    }
+}
+
+void Parser::launchDirective() {
+    consume(TokenType::LAUNCH, "Expected 'launch' directive at start");
+}
+
+void Parser::mainFunction() {
+    consume(TokenType::VACUUM, "Expected 'vacuum' for entry function");
+    consume(TokenType::MILKYWAY, "Expected 'milkyway' as entry function name");
+    consume(TokenType::LEFT_PAREN, "Expected '(' after milkyway");
+    consume(TokenType::RIGHT_PAREN, "Expected ')' after milkyway");
+    consume(TokenType::LEFT_BRACE, "Expected '{' at start of main function body");
+    statementList();
+    consume(TokenType::RIGHT_BRACE, "Expected '}' at end of main function body");
+}
+
+void Parser::statementList() {
+    while (!isAtEnd() && !check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
+        statement();
+    }
+}
+
+void Parser::statement() {
+    if (check(TokenType::MASS) || check(TokenType::FLUX) || check(TokenType::QUANTUM) ||
+        check(TokenType::NEBULA) || check(TokenType::STAR) || check(TokenType::TRUTH) || check(TokenType::VACUUM)) {
+        declaration();
+    }
+    else if (check(TokenType::IDENTIFIER)) {
+        assignment();
+    }
+    else if (check(TokenType::PHASE)) phaseStmt();
+    else if (check(TokenType::ORBIT)) orbitStmt();
+    else if (check(TokenType::ROTATE)) rotateStmt();
+    else if (check(TokenType::SUPERNOVA)) supernovaStmt();
+    else if (check(TokenType::SHINE)) outputStmt();
+    else if (check(TokenType::MOON)) inputStmt();
+    else if (check(TokenType::BLACKHOLE)) returnStmt();
+    else if (check(TokenType::DARKMATTER)) darkMatterStmt();
+    else if (check(TokenType::WARP)) warpStmt();
+    else {
+        throw std::runtime_error("Unexpected token: " + peek().lexeme);
+    }
+}
+
+// -------------------- Statements --------------------
+void Parser::declaration() {
+    advance(); // type
+    consume(TokenType::IDENTIFIER, "Expected identifier after type");
+    declarationTail();
+    consume(TokenType::SEMICOLON, "Expected ';' after declaration");
+}
+
+void Parser::declarationTail() {
+    if (match(TokenType::EQUAL)) {
+        expr();
+    }
+}
+
+void Parser::assignment() {
+    advance(); // identifier
+    consume(TokenType::EQUAL, "Expected '=' in assignment");
+    expr();
+    consume(TokenType::SEMICOLON, "Expected ';' after assignment");
+}
+
+void Parser::phaseStmt() {
+    consume(TokenType::PHASE, "Expected 'phase'");
+    consume(TokenType::LEFT_PAREN, "Expected '(' after 'phase'");
+    condition();
+    consume(TokenType::RIGHT_PAREN, "Expected ')' after condition");
+    consume(TokenType::LEFT_BRACE, "Expected '{' for phase block");
+    statementList();
+    consume(TokenType::RIGHT_BRACE, "Expected '}' after phase block");
+    if (match(TokenType::ECLIPSE)) {
+        consume(TokenType::LEFT_BRACE, "Expected '{' for eclipse block");
+        statementList();
+        consume(TokenType::RIGHT_BRACE, "Expected '}' after eclipse block");
+    }
+}
+
+void Parser::orbitStmt() {
+    consume(TokenType::ORBIT, "Expected 'orbit'");
+    consume(TokenType::LEFT_PAREN, "Expected '(' after 'orbit'");
+    condition();
+    consume(TokenType::RIGHT_PAREN, "Expected ')' after condition");
+    consume(TokenType::LEFT_BRACE, "Expected '{' for orbit block");
+    statementList();
+    consume(TokenType::RIGHT_BRACE, "Expected '}' after orbit block");
+}
+
+void Parser::rotateStmt() {
+    consume(TokenType::ROTATE, "Expected 'rotate'");
+    consume(TokenType::LEFT_PAREN, "Expected '(' after 'rotate'");
+
+    forInit();
+    consume(TokenType::SEMICOLON, "Expected ';' 1 in rotate");
+
+    conditionOpt();
+    consume(TokenType::SEMICOLON, "Expected ';' 2 in rotate");
+
+    // Assignment
+    advance(); // identifier
+    if (match(TokenType::EQUAL)) { // optional '='
+        expr(); // parse the expression if '=' exists
+    }
+
+    consume(TokenType::LEFT_BRACE, "Expected '{' for rotate block");
+    statementList();
+    consume(TokenType::RIGHT_BRACE, "Expected '}' after rotate block");
+}
+
+void Parser::forInit() {
+    if (check(TokenType::MASS) || check(TokenType::FLUX) || check(TokenType::QUANTUM) ||
+        check(TokenType::NEBULA) || check(TokenType::STAR) || check(TokenType::TRUTH) || check(TokenType::VACUUM)) {
+        advance(); // type
+        consume(TokenType::IDENTIFIER, "Expected identifier in for-init");
+        if (match(TokenType::EQUAL)) expr(); // optional initializer
+    }
+    else if (check(TokenType::IDENTIFIER)) {
+        advance(); // variable
+        consume(TokenType::EQUAL, "Expected '=' in assignment for for-init");
+        expr();
+    }
+    // ε (do nothing)
+}
+
+void Parser::conditionOpt() {
+    if (!check(TokenType::SEMICOLON)) condition();
+}
+
+void Parser::assignmentOpt() {
+    if (!check(TokenType::RIGHT_PAREN)) assignment();
+}
+
+void Parser::supernovaStmt() {
+    consume(TokenType::SUPERNOVA, "Expected 'supernova'");
+    consume(TokenType::LEFT_PAREN, "Expected '(' after 'supernova'");
+    expr();
+    consume(TokenType::RIGHT_PAREN, "Expected ')' after expression");
+    consume(TokenType::LEFT_BRACE, "Expected '{' for supernova block");
+
+    while (check(TokenType::STARPATH) || check(TokenType::BLACKVOID)) {
+        if (check(TokenType::STARPATH)) starPath();
+        else if (check(TokenType::BLACKVOID)) blackVoidOpt();
+    }
+
+    consume(TokenType::RIGHT_BRACE, "Expected '}' after supernova block");
+}
+
+void Parser::starPathList() {
+    while (check(TokenType::STARPATH)) starPath();
+}
+
+void Parser::starPath() {
+    consume(TokenType::STARPATH, "Expected 'starPath'");
+    consume(TokenType::NUMBER, "Expected number after 'starPath'");
+    consume(TokenType::COLON, "Expected ':' after starPath number");
+
+    while (check(TokenType::SHINE) || check(TokenType::DARKMATTER)) {
+        if (check(TokenType::SHINE)) outputStmt();
+        else if (check(TokenType::DARKMATTER)) darkMatterStmt();
+    }
+}
+
+void Parser::blackVoidOpt() {
+    if (match(TokenType::BLACKVOID)) {
+        consume(TokenType::COLON, "Expected ':' after blackVoid");
+
+        while (check(TokenType::SHINE) || check(TokenType::DARKMATTER)) {
+            if (check(TokenType::SHINE)) outputStmt();
+            else if (check(TokenType::DARKMATTER)) darkMatterStmt();
+        }
+    }
+}
+
+void Parser::paramList() {
+    if (!check(TokenType::RIGHT_PAREN)) {
+        param();
+        paramListOpt();
+    }
+}
+
+void Parser::paramListOpt() {
+    while (match(TokenType::COMMA)) {
+        param();
+    }
+}
+
+void Parser::param() {
+    advance(); // type
+    consume(TokenType::IDENTIFIER, "Expected parameter name");
+}
+
+void Parser::outputStmt() {
+    consume(TokenType::SHINE, "Expected 'shine'");
+    consume(TokenType::LEFT_PAREN, "Expected '(' after shine");
+    expr();
+    while (match(TokenType::COMMA)) expr();
+    consume(TokenType::RIGHT_PAREN, "Expected ')' after shine");
+    consume(TokenType::SEMICOLON, "Expected ';' after shine statement");
+}
+
+void Parser::inputStmt() {
+    consume(TokenType::MOON, "Expected 'moon'");
+    consume(TokenType::LEFT_PAREN, "Expected '(' after moon");
+    consume(TokenType::IDENTIFIER, "Expected variable name in moon");
+    consume(TokenType::RIGHT_PAREN, "Expected ')' after moon");
+    consume(TokenType::SEMICOLON, "Expected ';' after moon statement");
+}
+
+void Parser::returnStmt() {
+    consume(TokenType::BLACKHOLE, "Expected 'blackHole'");
+    if (!check(TokenType::SEMICOLON)) expr();
+    consume(TokenType::SEMICOLON, "Expected ';' after blackHole statement");
+}
+
+void Parser::darkMatterStmt() {
+    consume(TokenType::DARKMATTER, "Expected 'darkMatter'");
+    consume(TokenType::SEMICOLON, "Expected ';' after darkMatter");
+}
+
+void Parser::warpStmt() {
+    consume(TokenType::WARP, "Expected 'warp'");
+    consume(TokenType::SEMICOLON, "Expected ';' after warp");
+}
+
+// -------------------- Expressions --------------------
+void Parser::condition() {
+    expr();
+    if (check(TokenType::EQUAL_EQ) || check(TokenType::BANG_EQ) ||
+        check(TokenType::LESS) || check(TokenType::LESS_EQ) ||
+        check(TokenType::GREATER) || check(TokenType::GREATER_EQ)) {
+        advance();
+    } else throw std::runtime_error("Expected relational operator in condition");
+    expr();
+}
+
+void Parser::expr() {
+    term();
+    while (check(TokenType::PLUS) || check(TokenType::MINUS)) {
+        advance();
+        term();
+    }
+}
+
+void Parser::term() {
+    factor();
+    while (check(TokenType::STAR) || check(TokenType::SLASH) || check(TokenType::PERCENT)) {
+        advance();
+        factor();
+    }
+}
+
+void Parser::factor() {
+    if (match(TokenType::NUMBER) || match(TokenType::IDENTIFIER) || match(TokenType::STAR) ||
+        match(TokenType::STARLIGHT) || match(TokenType::VOIDNESS)) return;
+    if (match(TokenType::LEFT_PAREN)) {
+        expr();
+        consume(TokenType::RIGHT_PAREN, "Expected ')' after expression");
+        return;
+    }
+    throw std::runtime_error("Expected expression factor, got: " + peek().lexeme);
+}
+
+// -------------------- Helpers --------------------
+const Token& Parser::peek() const {
+    return tokens[current];
+}
+
+const Token& Parser::previous() const {
+    return tokens[current - 1];
+}
+
+const Token& Parser::advance() {
+    if (!isAtEnd()) current++;
+    return previous();
+}
+
+bool Parser::check(TokenType type) const {
+    if (isAtEnd()) return false;
+    return peek().type == type;
+}
+
+bool Parser::match(TokenType type) {
+    if (check(type)) {
+        advance();
+        return true;
+    }
     return false;
 }
 
-std::vector<std::unique_ptr<Stmt>> Parser::parseProgram() {
-    std::vector<std::unique_ptr<Stmt>> stmts;
-    while (!isAtEnd()) stmts.push_back(declaration());
-    return stmts;
+bool Parser::isAtEnd() const {
+    return peek().type == TokenType::END_OF_FILE;
 }
 
-std::unique_ptr<Stmt> Parser::declaration() {
-    if (match({TokenType::VACUUM, TokenType::MASS, TokenType::FLUX, TokenType::QUANTUM})) {
-        // ممكن تبقى function أو variable
-        Token type = previous();
-        Token name = advance();
-
-        if (match({TokenType::LEFT_PAREN})) {
-            // Function
-            auto func = std::make_unique<FuncDecl>();
-            func->returnType = type;
-            func->name = name;
-            match({TokenType::RIGHT_PAREN}); // TODO: params later
-            func->body.push_back(block());
-            return func;
-        } else {
-            // Variable declaration
-            auto var = std::make_unique<VarDecl>();
-            var->type = type;
-            var->name = name;
-            if (match({TokenType::EQUAL})) var->initializer = expression();
-            match({TokenType::SEMICOLON});
-            return var;
-        }
+void Parser::consume(TokenType type, const std::string& errorMessage) {
+    if (check(type)) {
+        advance();
+    } else {
+        throw std::runtime_error(errorMessage + " at line " + std::to_string(peek().line));
     }
-
-    return statement();
 }
-
-std::unique_ptr<Stmt> Parser::block() {
-    auto block = std::make_unique<BlockStmt>();
-    if (!match({TokenType::LEFT_BRACE})) throw std::runtime_error("Expected '{'");
-    while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) block->statements.push_back(declaration());
-    match({TokenType::RIGHT_BRACE});
-    return block;
-}
-
-// Expressions
-std::unique_ptr<Expr> Parser::expression() {
-    return term();
-}
-
-std::unique_ptr<Expr> Parser::term() {
-    auto expr = factor();
-    while (match({TokenType::PLUS, TokenType::MINUS})) {
-        Token op = previous();
-        auto right = factor();
-        expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
-    }
-    return expr;
-}
-
-std::unique_ptr<Expr> Parser::factor() {
-    auto expr = primary();
-    while (match({TokenType::STARR, TokenType::SLASH})) {
-        Token op = previous();
-        auto right = primary();
-        expr = std::make_unique<BinaryExpr>(std::move(expr), op, std::move(right));
-    }
-    return expr;
-}
-
-
-std::unique_ptr<Expr> Parser::primary() {
-    if (match({TokenType::NUMBER, TokenType::STAR})) return std::make_unique<LiteralExpr>(previous());
-    throw std::runtime_error("Expected expression");
-}
-// --- تأكدي إن الجزء الأعلى من الملف موجود (constructors, peek, advance, match, ...)
-
-std::unique_ptr<Stmt> Parser::statement() {
-    // if / else -> phase / eclipse
-    if (match({TokenType::PHASE})) return ifStatement();
-
-    // for -> rotate
-    if (match({TokenType::ROTATE})) return forStatement();
-
-    // while -> orbit
-    if (match({TokenType::ORBIT})) return whileStatement();
-
-    // return -> blackHole
-    if (match({TokenType::BLACKHOLE})) return returnStatement();
-
-    // break -> darkMatter
-    if (match({TokenType::DARKMATTER})) return breakStatement();
-
-    // continue -> warp
-    if (match({TokenType::WARP})) return continueStatement();
-
-    // block
-    if (match({TokenType::LEFT_BRACE})) return block();
-
-    // expression statement (including shine(...) calls etc.)
-    return expressionStatement();
-}
-
-std::unique_ptr<Stmt> Parser::ifStatement() {
-    // we already consumed PHASE
-    if (!match({TokenType::LEFT_PAREN})) throw std::runtime_error("Expected '(' after 'phase'");
-    auto condition = expression();
-    if (!match({TokenType::RIGHT_PAREN})) throw std::runtime_error("Expected ')' after condition");
-    auto thenBranch = statement();
-
-    std::unique_ptr<Stmt> elseBranch = nullptr;
-    if (match({TokenType::ECLIPSE})) {
-        elseBranch = statement();
-    }
-
-    auto stmt = std::make_unique<IfStmt>();
-    stmt->condition = std::move(condition);
-    stmt->thenBranch = std::move(thenBranch);
-    stmt->elseBranch = std::move(elseBranch);
-    return stmt;
-}
-
-std::unique_ptr<Stmt> Parser::whileStatement() {
-    // consumed ORBIT
-    if (!match({TokenType::LEFT_PAREN})) throw std::runtime_error("Expected '(' after 'orbit'");
-    auto condition = expression();
-    if (!match({TokenType::RIGHT_PAREN})) throw std::runtime_error("Expected ')' after condition");
-    auto body = statement();
-
-    auto stmt = std::make_unique<WhileStmt>();
-    stmt->condition = std::move(condition);
-    stmt->body = std::move(body);
-    return stmt;
-}
-
-std::unique_ptr<Stmt> Parser::forStatement() {
-    // consumed ROTATE
-    if (!match({TokenType::LEFT_PAREN})) throw std::runtime_error("Expected '(' after 'rotate'");
-
-    // initializer: could be variable declaration or expression or ';'
-    std::unique_ptr<Stmt> initializer = nullptr;
-    if (!match({TokenType::SEMICOLON})) {
-        // try var decl
-        if (match({TokenType::MASS, TokenType::FLUX, TokenType::QUANTUM, TokenType::VACUUM})) {
-            // rollback one token? we consumed the type; we need to let varDeclaration handle it.
-            // simpler: construct varDeclaration manually
-            Token type = previous();
-            Token name = advance();
-            auto var = std::make_unique<VarDecl>();
-            var->type = type;
-            var->name = name;
-            if (match({TokenType::EQUAL})) var->initializer = expression();
-            if (!match({TokenType::SEMICOLON})) throw std::runtime_error("Expected ';' after for initializer");
-            initializer = std::move(var);
-        } else {
-            // expression statement as initializer
-            // parse expression then require semicolon
-            auto expr = expression();
-            if (!match({TokenType::SEMICOLON})) throw std::runtime_error("Expected ';' after for initializer");
-            initializer = std::make_unique<ExprStmt>(std::move(expr));
-        }
-    }
-
-    // condition
-    std::unique_ptr<Expr> condition = nullptr;
-    if (!check(TokenType::SEMICOLON)) {
-        condition = expression();
-    }
-    if (!match({TokenType::SEMICOLON})) throw std::runtime_error("Expected ';' after loop condition");
-
-    // increment
-    std::unique_ptr<Expr> increment = nullptr;
-    if (!check(TokenType::RIGHT_PAREN)) {
-        increment = expression();
-    }
-    if (!match({TokenType::RIGHT_PAREN})) throw std::runtime_error("Expected ')' after for clauses");
-
-    // body
-    auto body = statement();
-
-    auto stmt = std::make_unique<ForStmt>();
-    stmt->initializer = std::move(initializer);
-    stmt->condition = std::move(condition);
-    stmt->increment = std::move(increment);
-    stmt->body = std::move(body);
-    return stmt;
-}
-
-std::unique_ptr<Stmt> Parser::returnStatement() {
-    // consumed BLACKHOLE
-    std::unique_ptr<Expr> value = nullptr;
-    if (!check(TokenType::SEMICOLON)) {
-        value = expression();
-    }
-    if (!match({TokenType::SEMICOLON})) throw std::runtime_error("Expected ';' after return");
-    auto stmt = std::make_unique<ReturnStmt>();
-    stmt->value = std::move(value);
-    return stmt;
-}
-
-std::unique_ptr<Stmt> Parser::breakStatement() {
-    // consumed DARKMATTER
-    if (!match({TokenType::SEMICOLON})) throw std::runtime_error("Expected ';' after break");
-    return std::make_unique<BreakStmt>();
-}
-
-std::unique_ptr<Stmt> Parser::continueStatement() {
-    // consumed WARP
-    if (!match({TokenType::SEMICOLON})) throw std::runtime_error("Expected ';' after continue");
-    return std::make_unique<ContinueStmt>();
-}
-
-std::unique_ptr<Stmt> Parser::expressionStatement() {
-    auto expr = expression();
-    if (!match({TokenType::SEMICOLON})) throw std::runtime_error("Expected ';' after expression");
-    return std::make_unique<ExprStmt>(std::move(expr));
-}
-
-
