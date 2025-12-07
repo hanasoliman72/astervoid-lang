@@ -28,10 +28,13 @@ int main() {
             std::cout << token.lexeme << " -----> ("
                       << scanner.tokenTypeToString(token.type) << ")\n";
         }
+        std::cout << "\n";
 
         // 2. Parse
+        std::cout << "Parse Tree:\n";
         Parser parser(tokens);
-        parser.parse();
+        auto parseTree = parser.parse();
+        if(parseTree) parseTree->printTree();
 
     } catch (const std::exception& e) {
         std::cerr << "PARSER ERROR: " << e.what() << std::endl;

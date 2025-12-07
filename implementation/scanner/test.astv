@@ -2,5 +2,5 @@
 vacuum milkyway() {
     mass x;
     moon(x);
-    shine(x);
+    shine(x * x + x - 5);
 }

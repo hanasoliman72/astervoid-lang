@@ -2,71 +2,70 @@
 #define PARSER_H
 
 #include "../scanner/scanner.h"
+#include "../parseTree/genericParseTreeNode.cpp"
+#include <memory>
 #include <vector>
 #include <iostream>
 
 class Parser {
 public:
     Parser(const std::vector<Token>& tokens);
-    void parse(); // Entry point
+    std::shared_ptr<Node> parse(); // Entry point - returns AST root
 
 private:
     const std::vector<Token>& tokens;
     int current;
 
-    // ----------------- Grammar Rules -----------------
-    void program();
-    void launchDirective();
-    void mainFunction();
-    void statementList(); // Parses a list of statements inside { ... }
-    void statement(); // Parses a single statement.
+    // --------- Grammar Rules (all return AST nodes) ---------
+    std::shared_ptr<Node> program();
+    std::shared_ptr<Node> launchDirective();
+    std::shared_ptr<Node> globalStatementList();
+    std::shared_ptr<Node> globalStatement();
+    std::shared_ptr<Node> mainFunction();
+    std::shared_ptr<Node> statementList();
+    std::shared_ptr<Node> statement();
 
-    // ----------------- Functions -----------------
-    void functionStmt();
-    void paramList();
-    void paramListOpt();
-    void param();
-    void exprList();
-    void exprListOpt();
-    void exprOpt();
-    void returnStmt();
-    void globalStatementList();
-    void globalStatement();
-    bool isFunctionDeclaration(); // Helper to distinguish function from variable declaration
+    std::shared_ptr<Node> declaration();
+    std::shared_ptr<Node> declarationTail();
+    std::shared_ptr<Node> assignment();
+    std::shared_ptr<Node> phaseStmt();
+    std::shared_ptr<Node> orbitStmt();
+    std::shared_ptr<Node> rotateStmt();
+    std::shared_ptr<Node> supernovaStmt();
+    std::shared_ptr<Node> outputStmt();
+    std::shared_ptr<Node> inputStmt();
+    std::shared_ptr<Node> darkMatterStmt();
+    std::shared_ptr<Node> warpStmt();
+    std::shared_ptr<Node> returnStmt();
+    std::shared_ptr<Node> functionStmt();
 
-    void declaration();
-    void declarationTail();
-    void assignment();
-    void phaseStmt();
-    void orbitStmt();
-    void rotateStmt();
-    void supernovaStmt();
-    void outputStmt();
-    void inputStmt();
-    void darkMatterStmt();
-    void warpStmt();
+    std::shared_ptr<Node> expr();
+    std::shared_ptr<Node> term();
+    std::shared_ptr<Node> factor();
+    std::shared_ptr<Node> condition();
+    std::shared_ptr<Node> exprList();
+    std::shared_ptr<Node> exprOpt();
 
-    void expr(); // Parses addition/subtraction.
-    void term(); // Parses multiplication/division/modulus.
-    void factor(); // Parses numbers, variables, parenthesis, literals.
-    void condition(); // Parses relational expressions (==, !=, <, etc.).
+    std::shared_ptr<Node> starPathList();
+    std::shared_ptr<Node> starPath();
+    std::shared_ptr<Node> blackVoidOpt();
 
-    void starPathList();
-    void starPath();
-    void blackVoidOpt();
+    std::shared_ptr<Node> forInit();
+    std::shared_ptr<Node> conditionOpt();
+    std::shared_ptr<Node> assignmentOpt();
 
-    void forInit();
-    void conditionOpt();
-    void assignmentOpt();
+    std::shared_ptr<Node> paramList();
+    std::shared_ptr<Node> param();
 
-    // ----------------- Helper Functions -----------------
-    const Token& peek() const; // Returns the current token
-    const Token& previous() const; // Returns the previous token
-    const Token& advance(); // Moves to the next token and returns the previous
-    bool check(TokenType type) const; // Returns true if the current token matches type (without advancing)
-    bool match(TokenType type); // Checks and consumes the token if it matches
-    bool isAtEnd() const; // Checks and consumes the token if it matches
-    void consume(TokenType type, const std::string& errorMessage); // Ensures the current token is of type type, advances, else throws an error
+    // --------- Helper Functions ---------
+    const Token& peek() const;
+    const Token& previous() const;
+    const Token& advance();
+    bool check(TokenType type) const;
+    bool match(TokenType type);
+    bool isAtEnd() const;
+    void consume(TokenType type, const std::string& errorMessage);
+    bool isFunctionDeclaration();
 };
 
-#endif
+#endif // PARSER_H
