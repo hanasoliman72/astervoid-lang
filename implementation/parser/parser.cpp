@@ -697,6 +697,35 @@ std::shared_ptr<Node> Parser::factor() {
     if (check(TokenType::IDENTIFIER)) {
         Token idToken = peek();
         advance();
+
+        // Check if this is a function call
+        if (check(TokenType::LEFT_PAREN)) {
+            Token lpToken = peek();
+            advance();
+
+            auto funcCallNode = std::make_shared<Node>(NodeType::FACTOR, idToken, idToken.lexeme);
+            funcCallNode->addChild(std::make_shared<Node>(NodeType::TOKEN, lpToken));
+
+            // Parse arguments (expression list or empty)
+            if (!check(TokenType::RIGHT_PAREN)) {
+                auto firstArg = expr();
+                if (firstArg) funcCallNode->addChild(firstArg);
+
+                while (match(TokenType::COMMA)) {
+                    funcCallNode->addChild(std::make_shared<Node>(NodeType::TOKEN, previous(), ","));
+                    auto nextArg = expr();
+                    if (nextArg) funcCallNode->addChild(nextArg);
+                }
+            }
+
+            Token rpToken = peek();
+            consume(TokenType::RIGHT_PAREN, "Expected ')' after function arguments");
+            funcCallNode->addChild(std::make_shared<Node>(NodeType::TOKEN, rpToken));
+
+            return funcCallNode;
+        }
+
+        // Just a regular identifier
         return std::make_shared<Node>(NodeType::FACTOR, idToken, idToken.lexeme);
     }
     if (check(TokenType::STAR)) {

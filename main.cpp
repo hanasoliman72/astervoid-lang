@@ -34,8 +34,12 @@ int main() {
         std::cout << "Parse Tree:\n";
         Parser parser(tokens);
         auto parseTree = parser.parse();
-        if(parseTree) parseTree->printTree();
+        if(parseTree) {
+            parseTree->printTree();
 
+            // 3. Semantic
+        }
+        else std::cout << "Parse Tree is null\n";
     } catch (const std::exception& e) {
         std::cerr << "PARSER ERROR: " << e.what() << std::endl;
     }

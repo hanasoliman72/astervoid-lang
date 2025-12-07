@@ -2,7 +2,7 @@
 #define PARSER_H
 
 #include "../scanner/scanner.h"
-#include "../parseTree/genericParseTreeNode.cpp"
+#include "../parseTree/genericParseTreeNode.h"
 #include <memory>
 #include <vector>
 #include <iostream>

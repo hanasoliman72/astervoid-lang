@@ -248,7 +248,7 @@ TokenType Scanner::identifierType(const std::string &s) {
         {"nebula", TokenType::NEBULA},
         {"star", TokenType::STAR},
         {"truth", TokenType::TRUTH},
-        {"starlight", TokenType::TRUTH},   // true
+        {"starlight", TokenType::STARLIGHT},   // true
         {"voidness", TokenType::VOIDNESS}, // false
         {"vacuum", TokenType::VACUUM},
         {"blackHole", TokenType::BLACKHOLE},

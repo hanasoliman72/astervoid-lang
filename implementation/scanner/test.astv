@@ -1,6 +1,3 @@
 #launch <bigbang>
 vacuum milkyway() {
-    mass x;
-    moon(x);
-    shine(x * x + x - 5);
 }
