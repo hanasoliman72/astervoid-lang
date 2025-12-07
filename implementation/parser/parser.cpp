@@ -16,6 +16,7 @@ void Parser::parse() {
 // -------------------- Grammar Rules --------------------
 void Parser::program() {
     launchDirective();
+    globalStatementList();
     mainFunction();
     if (!isAtEnd()) {
         throw std::runtime_error("Syntax Error: Expected end of file at line " + std::to_string(peek().line));
@@ -24,6 +25,27 @@ void Parser::program() {
 
 void Parser::launchDirective() {
     consume(TokenType::LAUNCH, "Expected 'launch' directive at start");
+}
+
+void Parser::globalStatementList() {
+    while (!isAtEnd() && !check(TokenType::VACUUM) && !check(TokenType::END_OF_FILE)) {
+        globalStatement();
+    }
+}
+
+void Parser::globalStatement() {
+    if (check(TokenType::MASS) || check(TokenType::FLUX) || check(TokenType::QUANTUM) ||
+        check(TokenType::NEBULA) || check(TokenType::STAR) || check(TokenType::TRUTH) || check(TokenType::VACUUM)) {
+        // Check if it's a function declaration or a variable declaration
+        if (isFunctionDeclaration()) {
+            functionStmt();
+        } else {
+            declaration();
+        }
+    }
+    else {
+        throw std::runtime_error("Expected type or function declaration at line " + std::to_string(peek().line));
+    }
 }
 
 void Parser::mainFunction() {
@@ -45,7 +67,12 @@ void Parser::statementList() {
 void Parser::statement() {
     if (check(TokenType::MASS) || check(TokenType::FLUX) || check(TokenType::QUANTUM) ||
         check(TokenType::NEBULA) || check(TokenType::STAR) || check(TokenType::TRUTH) || check(TokenType::VACUUM)) {
-        declaration();
+        // Check if it's a function declaration or a variable declaration
+        if (isFunctionDeclaration()) {
+            functionStmt();
+        } else {
+            declaration();
+        }
     }
     else if (check(TokenType::IDENTIFIER)) {
         assignment();
@@ -56,6 +83,7 @@ void Parser::statement() {
     else if (check(TokenType::SUPERNOVA)) supernovaStmt();
     else if (check(TokenType::SHINE)) outputStmt();
     else if (check(TokenType::MOON)) inputStmt();
+    else if (check(TokenType::BLACKHOLE)) returnStmt();
     else if (check(TokenType::DARKMATTER)) darkMatterStmt();
     else if (check(TokenType::WARP)) warpStmt();
     else {
@@ -176,29 +204,20 @@ void Parser::starPath() {
     consume(TokenType::STARPATH, "Expected 'starPath'");
     consume(TokenType::NUMBER, "Expected number after 'starPath'");
     consume(TokenType::COLON, "Expected ':' after starPath number");
-
-    while (check(TokenType::SHINE) || check(TokenType::DARKMATTER)) {
-        if (check(TokenType::SHINE)) outputStmt();
-        else if (check(TokenType::DARKMATTER)) darkMatterStmt();
-    }
+    statementList();
 }
 
 void Parser::blackVoidOpt() {
     if (match(TokenType::BLACKVOID)) {
         consume(TokenType::COLON, "Expected ':' after blackVoid");
-
-        while (check(TokenType::SHINE) || check(TokenType::DARKMATTER)) {
-            if (check(TokenType::SHINE)) outputStmt();
-            else if (check(TokenType::DARKMATTER)) darkMatterStmt();
-        }
+        statementList();
     }
 }
 
 void Parser::outputStmt() {
     consume(TokenType::SHINE, "Expected 'shine'");
     consume(TokenType::LEFT_PAREN, "Expected '(' after shine");
-    expr();
-    while (match(TokenType::COMMA)) expr();
+    exprList();
     consume(TokenType::RIGHT_PAREN, "Expected ')' after shine");
     consume(TokenType::SEMICOLON, "Expected ';' after shine statement");
 }
@@ -211,7 +230,6 @@ void Parser::inputStmt() {
     consume(TokenType::SEMICOLON, "Expected ';' after moon statement");
 }
 
-
 void Parser::darkMatterStmt() {
     consume(TokenType::DARKMATTER, "Expected 'darkMatter'");
     consume(TokenType::SEMICOLON, "Expected ';' after darkMatter");
@@ -220,6 +238,46 @@ void Parser::darkMatterStmt() {
 void Parser::warpStmt() {
     consume(TokenType::WARP, "Expected 'warp'");
     consume(TokenType::SEMICOLON, "Expected ';' after warp");
+}
+
+void Parser::returnStmt() {
+    consume(TokenType::BLACKHOLE, "Expected 'blackHole'");
+    exprOpt();
+    consume(TokenType::SEMICOLON, "Expected ';' after return statement");
+}
+
+void Parser::functionStmt() {
+    advance(); // Type
+    consume(TokenType::IDENTIFIER, "Expected function name");
+    consume(TokenType::LEFT_PAREN, "Expected '(' after function name");
+    paramList();
+    consume(TokenType::RIGHT_PAREN, "Expected ')' after parameter list");
+    consume(TokenType::LEFT_BRACE, "Expected '{' at start of function body");
+    statementList();
+    consume(TokenType::RIGHT_BRACE, "Expected '}' at end of function body");
+}
+
+void Parser::paramList() {
+    if (!check(TokenType::RIGHT_PAREN)) {
+        param();
+        paramListOpt();
+    }
+}
+
+void Parser::paramListOpt() {
+    while (match(TokenType::COMMA)) {
+        param();
+    }
+}
+
+void Parser::param() {
+    if (check(TokenType::MASS) || check(TokenType::FLUX) || check(TokenType::QUANTUM) ||
+        check(TokenType::NEBULA) || check(TokenType::STAR) || check(TokenType::TRUTH) || check(TokenType::VACUUM)) {
+        advance(); // Type
+        consume(TokenType::IDENTIFIER, "Expected parameter name");
+    } else {
+        throw std::runtime_error("Expected type in parameter at line " + std::to_string(peek().line));
+    }
 }
 
 // -------------------- Expressions --------------------
@@ -260,6 +318,23 @@ void Parser::factor() {
     throw std::runtime_error("Expected expression factor, got: " + peek().lexeme);
 }
 
+void Parser::exprList() {
+    expr();
+    exprListOpt();
+}
+
+void Parser::exprListOpt() {
+    while (match(TokenType::COMMA)) {
+        expr();
+    }
+}
+
+void Parser::exprOpt() {
+    if (!check(TokenType::SEMICOLON)) {
+        expr();
+    }
+}
+
 // -------------------- Helpers --------------------
 const Token& Parser::peek() const {
     return tokens[current];
@@ -297,4 +372,26 @@ void Parser::consume(TokenType type, const std::string& errorMessage) {
     } else {
         throw std::runtime_error(errorMessage + " at line " + std::to_string(peek().line));
     }
+}
+
+bool Parser::isFunctionDeclaration() {
+    // Look ahead to determine if this is a function declaration
+    // Pattern: Type Identifier (
+    int saved = current;
+
+    // Skip type
+    advance();
+
+    // Check for identifier
+    if (!check(TokenType::IDENTIFIER)) {
+        current = saved;
+        return false;
+    }
+    advance();
+
+    // Check for opening parenthesis
+    bool isFuncDecl = check(TokenType::LEFT_PAREN);
+
+    current = saved;
+    return isFuncDecl;
 }

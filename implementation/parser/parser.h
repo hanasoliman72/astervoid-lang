@@ -21,6 +21,19 @@ private:
     void statementList(); // Parses a list of statements inside { ... }
     void statement(); // Parses a single statement.
 
+    // ----------------- Functions -----------------
+    void functionStmt();
+    void paramList();
+    void paramListOpt();
+    void param();
+    void exprList();
+    void exprListOpt();
+    void exprOpt();
+    void returnStmt();
+    void globalStatementList();
+    void globalStatement();
+    bool isFunctionDeclaration(); // Helper to distinguish function from variable declaration
+
     void declaration();
     void declarationTail();
     void assignment();

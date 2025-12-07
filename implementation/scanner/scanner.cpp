@@ -7,6 +7,7 @@ Scanner::Scanner(const std::string& sourceCode) : source(sourceCode) {}
 std::vector<Token> Scanner::scanTokens() {
     while(!isAtEnd()) {
         skipWhitespace();
+        if (isAtEnd()) break;
         start = current;
         startCol = col;
         Token token = scanToken();

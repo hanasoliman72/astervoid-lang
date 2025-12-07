@@ -23,11 +23,11 @@ int main() {
         Scanner scanner(source);
         std::vector<Token> tokens = scanner.scanTokens();
 
-        // std::cout << "TOKENS:\n";
-        // for (const auto &token : tokens) {
-        //     std::cout << token.lexeme << " -----> ("
-        //               << scanner.tokenTypeToString(token.type) << ")\n";
-        // }
+        std::cout << "TOKENS:\n";
+        for (const auto &token : tokens) {
+            std::cout << token.lexeme << " -----> ("
+                      << scanner.tokenTypeToString(token.type) << ")\n";
+        }
 
         // 2. Parse
         Parser parser(tokens);
