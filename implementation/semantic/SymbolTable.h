@@ -14,10 +14,7 @@ struct Symbol {
     int col;
     int scope;
 
-    // Default constructor
     Symbol();
-
-    // Constructor with parameters
     Symbol(const std::string& n, const std::string& t, int l, int c, int s);
 };
 
@@ -28,7 +25,6 @@ private:
     int currentScope;
 
 public:
-    // Constructor
     SymbolTable();
 
     // Push a new scope
@@ -53,4 +49,4 @@ public:
     int getScopeDepth() const;
 };
 
-#endif // SYMBOLTABLE_H
+#endif

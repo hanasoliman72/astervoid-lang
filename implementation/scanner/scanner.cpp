@@ -115,6 +115,7 @@ Token Scanner::scanToken() {
 
         // LITERALS
         case '"': return stringLiteral();
+        case '\'' : return characterLiteral();
 
         default:
             if(isDigit(ch)) return number();
@@ -160,6 +161,25 @@ Token Scanner::stringLiteral() {
     if (len < 0) len = 0;
     std::string value = source.substr(start + 1, len);
     return makeToken(TokenType::STAR, value, value);
+}
+
+Token Scanner::characterLiteral() {
+    if (isAtEnd()) {
+        return makeToken(TokenType::ERROR, "Unterminated character literal.");
+    }
+
+    char ch = advance();
+    if (isAtEnd()) {
+        return makeToken(TokenType::ERROR, "Unterminated character literal.");
+    }
+
+    if (peek() != '\'') {
+        return makeToken(TokenType::ERROR, "Expected closing quote for character literal.");
+    }
+    advance();
+
+    std::string value(1, ch);
+    return makeToken(TokenType::NEBULA, value, value);
 }
 
 Token Scanner::number() {

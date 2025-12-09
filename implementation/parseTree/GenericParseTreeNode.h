@@ -25,10 +25,10 @@ enum class NodeType {
 
     // Statements
     STATEMENT_LIST,
-    PHASE_STATEMENT,
-    ORBIT_STATEMENT,
-    ROTATE_STATEMENT,
-    SUPERNOVA_STATEMENT,
+    IF_STATEMENT,
+    WHILE_STATEMENT,
+    FOR_STATEMENT,
+    SWITCH_STATEMENT,
     OUTPUT_STATEMENT,
     INPUT_STATEMENT,
     RETURN_STATEMENT,
@@ -37,8 +37,8 @@ enum class NodeType {
 
     // Switch-like
     STARPATH_LIST,
-    STARPATH,
-    BLACKVOID,
+    CASE,
+    DEFAULT,
 
     // Expressions
     EXPRESSION,
@@ -57,13 +57,11 @@ public:
     NodeType type;
     Token token;  // The token this node represents (for semantic analysis)
     std::vector<std::shared_ptr<Node>> children;  // Child nodes
-    std::string value;  // For storing literal values, type names, identifiers, etc.
+    std::string value;  // For storing literal values, type names, identifiers.
 
-    // Constructors
     Node(NodeType nodeType, const Token& tok = Token{TokenType::ERROR, "", "", 0, 0});
     Node(NodeType nodeType, const Token& tok, const std::string& val);
 
-    // Destructor
     virtual ~Node() = default;
 
     // Add a child node
@@ -78,11 +76,11 @@ public:
     // Get a child by index
     std::shared_ptr<Node> getChild(size_t index) const;
 
-    // Helper to get node type as string (for debugging)
+    // Helper to get node type as string
     std::string nodeTypeToString() const;
 
-    // Debug: Print tree structure
+    // Print tree structure
     void printTree(int depth = 0) const;
 };
 
-#endif // GENERICPARSETREENODE_H
+#endif

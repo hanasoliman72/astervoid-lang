@@ -59,13 +59,10 @@ std::shared_ptr<Node> Parser::globalStatement() {
         check(TokenType::NEBULA) || check(TokenType::STAR) || check(TokenType::TRUTH) || check(TokenType::VACUUM)) {
         if (isFunctionDeclaration()) {
             return functionStmt();
-        } else {
-            return declaration();
         }
+        return declaration();
     }
-    else {
-        throw std::runtime_error("Expected type or function declaration at line " + std::to_string(peek().line));
-    }
+    throw std::runtime_error("Expected type or function declaration at line " + std::to_string(peek().line));
 }
 
 std::shared_ptr<Node> Parser::mainFunction() {
@@ -117,27 +114,26 @@ std::shared_ptr<Node> Parser::statement() {
         check(TokenType::NEBULA) || check(TokenType::STAR) || check(TokenType::TRUTH) || check(TokenType::VACUUM)) {
         return declaration();
     }
-    else if (check(TokenType::IDENTIFIER)) {
+    if (check(TokenType::IDENTIFIER)) {
         return assignment();
     }
-    else if (check(TokenType::PHASE)) return phaseStmt();
-    else if (check(TokenType::ORBIT)) return orbitStmt();
-    else if (check(TokenType::ROTATE)) return rotateStmt();
-    else if (check(TokenType::SUPERNOVA)) return supernovaStmt();
-    else if (check(TokenType::SHINE)) return outputStmt();
-    else if (check(TokenType::MOON)) return inputStmt();
-    else if (check(TokenType::BLACKHOLE)) return returnStmt();
-    else if (check(TokenType::DARKMATTER)) return darkMatterStmt();
-    else if (check(TokenType::WARP)) return warpStmt();
-    else {
-        throw std::runtime_error("Unexpected token: " + peek().lexeme);
-    }
+    if (check(TokenType::PHASE)) return ifStmt();
+    if (check(TokenType::ORBIT)) return whileStmt();
+    if (check(TokenType::ROTATE)) return forStmt();
+    if (check(TokenType::SUPERNOVA)) return switchStmt();
+    if (check(TokenType::SHINE)) return outputStmt();
+    if (check(TokenType::MOON)) return inputStmt();
+    if (check(TokenType::BLACKHOLE)) return returnStmt();
+    if (check(TokenType::DARKMATTER)) return breakStmt();
+    if (check(TokenType::WARP)) return continueStmt();
+    throw std::runtime_error("Unexpected token: " + peek().lexeme);
 }
 
 // -------------------- Statements --------------------
 std::shared_ptr<Node> Parser::declaration() {
     auto declNode = std::make_shared<Node>(NodeType::DECLARATION);
 
+    // Type
     Token typeToken = peek();
     advance();
     declNode->addChild(std::make_shared<Node>(NodeType::TOKEN, typeToken, typeToken.lexeme));
@@ -189,8 +185,8 @@ std::shared_ptr<Node> Parser::assignment() {
     return assignNode;
 }
 
-std::shared_ptr<Node> Parser::phaseStmt() {
-    auto phaseNode = std::make_shared<Node>(NodeType::PHASE_STATEMENT);
+std::shared_ptr<Node> Parser::ifStmt() {
+    auto phaseNode = std::make_shared<Node>(NodeType::IF_STATEMENT);
 
     Token phaseToken = peek();
     consume(TokenType::PHASE, "Expected 'phase'");
@@ -237,8 +233,8 @@ std::shared_ptr<Node> Parser::phaseStmt() {
     return phaseNode;
 }
 
-std::shared_ptr<Node> Parser::orbitStmt() {
-    auto orbitNode = std::make_shared<Node>(NodeType::ORBIT_STATEMENT);
+std::shared_ptr<Node> Parser::whileStmt() {
+    auto orbitNode = std::make_shared<Node>(NodeType::WHILE_STATEMENT);
 
     Token orbitToken = peek();
     consume(TokenType::ORBIT, "Expected 'orbit'");
@@ -269,8 +265,8 @@ std::shared_ptr<Node> Parser::orbitStmt() {
     return orbitNode;
 }
 
-std::shared_ptr<Node> Parser::rotateStmt() {
-    auto rotateNode = std::make_shared<Node>(NodeType::ROTATE_STATEMENT);
+std::shared_ptr<Node> Parser::forStmt() {
+    auto rotateNode = std::make_shared<Node>(NodeType::FOR_STATEMENT);
 
     Token rotateToken = peek();
     consume(TokenType::ROTATE, "Expected 'rotate'");
@@ -377,8 +373,8 @@ std::shared_ptr<Node> Parser::assignmentOpt() {
     return nullptr;
 }
 
-std::shared_ptr<Node> Parser::supernovaStmt() {
-    auto superNode = std::make_shared<Node>(NodeType::SUPERNOVA_STATEMENT);
+std::shared_ptr<Node> Parser::switchStmt() {
+    auto superNode = std::make_shared<Node>(NodeType::SWITCH_STATEMENT);
 
     Token superToken = peek();
     consume(TokenType::SUPERNOVA, "Expected 'supernova'");
@@ -402,7 +398,7 @@ std::shared_ptr<Node> Parser::supernovaStmt() {
     auto pathListNode = starPathList();
     if (pathListNode) superNode->addChild(pathListNode);
 
-    auto blackVoidNode = blackVoidOpt();
+    auto blackVoidNode = defaultOpt();
     if (blackVoidNode) superNode->addChild(blackVoidNode);
 
     Token rbToken = peek();
@@ -416,15 +412,15 @@ std::shared_ptr<Node> Parser::starPathList() {
     auto listNode = std::make_shared<Node>(NodeType::STARPATH_LIST);
 
     while (check(TokenType::STARPATH)) {
-        auto pathNode = starPath();
+        auto pathNode = casePath();
         if (pathNode) listNode->addChild(pathNode);
     }
 
     return listNode;
 }
 
-std::shared_ptr<Node> Parser::starPath() {
-    auto pathNode = std::make_shared<Node>(NodeType::STARPATH);
+std::shared_ptr<Node> Parser::casePath() {
+    auto pathNode = std::make_shared<Node>(NodeType::CASE);
 
     Token starToken = peek();
     consume(TokenType::STARPATH, "Expected 'starPath'");
@@ -438,23 +434,34 @@ std::shared_ptr<Node> Parser::starPath() {
     consume(TokenType::COLON, "Expected ':' after starPath number");
     pathNode->addChild(std::make_shared<Node>(NodeType::TOKEN, colToken));
 
-    auto stmtListNode = statementList();
-    if (stmtListNode) pathNode->addChild(stmtListNode);
+    auto caseStmts = std::make_shared<Node>(NodeType::STATEMENT_LIST);
+    while (!isAtEnd() &&
+           !check(TokenType::STARPATH) &&
+           !check(TokenType::BLACKVOID) &&
+           !check(TokenType::RIGHT_BRACE)) {
+        auto stmt = statement();
+        if (stmt) caseStmts->addChild(stmt);
+    }
+    if (caseStmts) pathNode->addChild(caseStmts);
 
     return pathNode;
 }
 
-std::shared_ptr<Node> Parser::blackVoidOpt() {
+std::shared_ptr<Node> Parser::defaultOpt() {
     if (match(TokenType::BLACKVOID)) {
-        auto blackVoidNode = std::make_shared<Node>(NodeType::BLACKVOID);
+        auto blackVoidNode = std::make_shared<Node>(NodeType::DEFAULT);
         blackVoidNode->addChild(std::make_shared<Node>(NodeType::TOKEN, previous()));
 
         Token colToken = peek();
         consume(TokenType::COLON, "Expected ':' after blackVoid");
         blackVoidNode->addChild(std::make_shared<Node>(NodeType::TOKEN, colToken));
 
-        auto stmtListNode = statementList();
-        if (stmtListNode) blackVoidNode->addChild(stmtListNode);
+        auto defaultStmts = std::make_shared<Node>(NodeType::STATEMENT_LIST);
+        while (!isAtEnd() && !check(TokenType::RIGHT_BRACE)) {
+            auto stmt = statement();
+            if (stmt) defaultStmts->addChild(stmt);
+        }
+        if (defaultStmts) blackVoidNode->addChild(defaultStmts);
 
         return blackVoidNode;
     }
@@ -512,7 +519,7 @@ std::shared_ptr<Node> Parser::inputStmt() {
     return moonNode;
 }
 
-std::shared_ptr<Node> Parser::darkMatterStmt() {
+std::shared_ptr<Node> Parser::breakStmt() {
     auto darkNode = std::make_shared<Node>(NodeType::BREAK_STATEMENT);
 
     Token darkToken = peek();
@@ -526,7 +533,7 @@ std::shared_ptr<Node> Parser::darkMatterStmt() {
     return darkNode;
 }
 
-std::shared_ptr<Node> Parser::warpStmt() {
+std::shared_ptr<Node> Parser::continueStmt() {
     auto warpNode = std::make_shared<Node>(NodeType::CONTINUE_STATEMENT);
 
     Token warpToken = peek();
@@ -636,6 +643,9 @@ std::shared_ptr<Node> Parser::condition() {
     auto leftExpr = expr();
     if (leftExpr) condNode->addChild(leftExpr);
 
+    // Store current token info before checking
+    Token currentToken = peek();
+
     if (check(TokenType::EQUAL_EQ) || check(TokenType::BANG_EQ) ||
         check(TokenType::LESS) || check(TokenType::LESS_EQ) ||
         check(TokenType::GREATER) || check(TokenType::GREATER_EQ)) {
@@ -643,7 +653,18 @@ std::shared_ptr<Node> Parser::condition() {
         advance();
         condNode->addChild(std::make_shared<Node>(NodeType::TOKEN, opToken, opToken.lexeme));
     } else {
-        throw std::runtime_error("Expected relational operator in condition");
+        std::string errorMsg = "Expected relational operator (==, !=, <, <=, >, >=) in condition at line " +
+                              std::to_string(currentToken.line);
+        // Add helpful context about what was found
+        if (currentToken.type == TokenType::EQUAL) {
+            errorMsg += ". Found '=' (use '==' for comparison)";
+        } else if (currentToken.type == TokenType::RIGHT_PAREN) {
+            errorMsg += ". Condition appears incomplete";
+        } else {
+            errorMsg += ". Found: '" + currentToken.lexeme + "'";
+        }
+
+        throw std::runtime_error(errorMsg);
     }
 
     auto rightExpr = expr();
@@ -733,6 +754,11 @@ std::shared_ptr<Node> Parser::factor() {
         advance();
         return std::make_shared<Node>(NodeType::FACTOR, starToken, starToken.literal);
     }
+    if (check(TokenType::NEBULA)) {
+        Token charToken = peek();
+        advance();
+        return std::make_shared<Node>(NodeType::FACTOR, charToken, charToken.literal);
+    }
     if (check(TokenType::STARLIGHT)) {
         Token trueToken = peek();
         advance();
@@ -756,7 +782,10 @@ std::shared_ptr<Node> Parser::factor() {
         return factorNode;
     }
 
-    throw std::runtime_error("Expected expression factor, got: " + peek().lexeme);
+    Token current = peek();
+    throw std::runtime_error("Expected expression factor at line " +
+                           std::to_string(current.line) +
+                           ". Found: '" + current.lexeme + "'");
 }
 
 std::shared_ptr<Node> Parser::exprList() {
@@ -816,7 +845,10 @@ void Parser::consume(TokenType type, const std::string& errorMessage) {
     if (check(type)) {
         advance();
     } else {
-        throw std::runtime_error(errorMessage + " at line " + std::to_string(peek().line));
+        Token current = peek();
+        std::string fullError = errorMessage + " at line " + std::to_string(current.line) +
+                               ". Found: '" + current.lexeme + "'";
+        throw std::runtime_error(fullError);
     }
 }
 

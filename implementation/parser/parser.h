@@ -1,22 +1,21 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "../scanner/scanner.h"
 #include "../parseTree/genericParseTreeNode.h"
+#include "../scanner/scanner.h"
 #include <memory>
 #include <vector>
-#include <iostream>
 
 class Parser {
 public:
     Parser(const std::vector<Token>& tokens);
-    std::shared_ptr<Node> parse(); // Entry point - returns AST root
+    std::shared_ptr<Node> parse();
 
 private:
     const std::vector<Token>& tokens;
     int current;
 
-    // --------- Grammar Rules (all return AST nodes) ---------
+    // --------- Grammar Rules ---------
     std::shared_ptr<Node> program();
     std::shared_ptr<Node> launchDirective();
     std::shared_ptr<Node> globalStatementList();
@@ -28,14 +27,14 @@ private:
     std::shared_ptr<Node> declaration();
     std::shared_ptr<Node> declarationTail();
     std::shared_ptr<Node> assignment();
-    std::shared_ptr<Node> phaseStmt();
-    std::shared_ptr<Node> orbitStmt();
-    std::shared_ptr<Node> rotateStmt();
-    std::shared_ptr<Node> supernovaStmt();
+    std::shared_ptr<Node> ifStmt();
+    std::shared_ptr<Node> whileStmt();
+    std::shared_ptr<Node> forStmt();
+    std::shared_ptr<Node> switchStmt();
     std::shared_ptr<Node> outputStmt();
     std::shared_ptr<Node> inputStmt();
-    std::shared_ptr<Node> darkMatterStmt();
-    std::shared_ptr<Node> warpStmt();
+    std::shared_ptr<Node> breakStmt();
+    std::shared_ptr<Node> continueStmt();
     std::shared_ptr<Node> returnStmt();
     std::shared_ptr<Node> functionStmt();
 
@@ -47,8 +46,8 @@ private:
     std::shared_ptr<Node> exprOpt();
 
     std::shared_ptr<Node> starPathList();
-    std::shared_ptr<Node> starPath();
-    std::shared_ptr<Node> blackVoidOpt();
+    std::shared_ptr<Node> casePath();
+    std::shared_ptr<Node> defaultOpt();
 
     std::shared_ptr<Node> forInit();
     std::shared_ptr<Node> conditionOpt();

@@ -42,6 +42,7 @@ private:
     Token scanToken();
     Token directive();
     Token stringLiteral();
+    Token characterLiteral();
     Token number();
     Token identifier();
     Token comment();

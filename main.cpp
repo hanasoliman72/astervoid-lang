@@ -1,11 +1,11 @@
+#include "implementation/semantic/SemanticAnalyzer.h"
+#include "implementation/Scanner/Scanner.h"
+#include "implementation/Parser/Parser.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include "implementation/Scanner/Scanner.h"
-#include "implementation/Parser/Parser.h"
 
 int main() {
     std::ifstream file("D:/ClionProjects/Compiler/implementation/scanner/test.astv");
@@ -28,7 +28,7 @@ int main() {
             std::cout << token.lexeme << " -----> ("
                       << scanner.tokenTypeToString(token.type) << ")\n";
         }
-        std::cout << "\n";
+        std::cout << "-----------------------------------------------------------\n";
 
         // 2. Parse
         std::cout << "Parse Tree:\n";
@@ -36,8 +36,11 @@ int main() {
         auto parseTree = parser.parse();
         if(parseTree) {
             parseTree->printTree();
+            std::cout << "-----------------------------------------------------------\n";
 
             // 3. Semantic
+            SemanticAnalyzer semantic_analyzer;
+            semantic_analyzer.analyze(parseTree);
         }
         else std::cout << "Parse Tree is null\n";
     } catch (const std::exception& e) {

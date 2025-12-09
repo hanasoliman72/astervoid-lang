@@ -33,8 +33,7 @@ void SymbolTable::declare(const std::string& name, const std::string& type, int 
 
     // Check if already declared in current scope
     if (currentScopeMap.find(name) != currentScopeMap.end()) {
-        std::cerr << "Semantic Error: '" << name << "' redeclared at line " << line
-                  << ", col " << col << std::endl;
+        std::cerr << "Semantic Error: '" << name << "' redeclared at line " << line << std::endl;
         return;
     }
 
@@ -43,16 +42,14 @@ void SymbolTable::declare(const std::string& name, const std::string& type, int 
 
 Symbol* SymbolTable::lookup(const std::string& name, int line, int col) {
     // Search from innermost (current) to outermost (global) scope
-    for (int i = scopes.size() - 1; i >= 0; i--) {
-        auto it = scopes[i].find(name);
-        if (it != scopes[i].end()) {
-            return &it->second;
+    for (int i = (int)scopes.size() - 1; i >= 0; i--) {
+        if (scopes[i].find(name) != scopes[i].end()) {
+            return &scopes[i].find(name)->second;
         }
     }
 
     // Not found
-    std::cerr << "Semantic Error: Undefined variable '" << name << "' at line " << line
-              << ", col " << col << std::endl;
+    std::cerr << "Semantic Error: Undefined variable '" << name << "' at line " << line << std::endl;
     return nullptr;
 }
 
@@ -62,5 +59,5 @@ bool SymbolTable::existsInCurrentScope(const std::string& name) {
 }
 
 int SymbolTable::getScopeDepth() const {
-    return scopes.size();
+    return (int)scopes.size();
 }
