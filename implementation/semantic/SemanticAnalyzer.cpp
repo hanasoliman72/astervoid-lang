@@ -279,6 +279,7 @@ void SemanticAnalyzer::analyzeForStatement(std::shared_ptr<Node> node) {
 }
 
 void SemanticAnalyzer::analyzeSwitchStatement(std::shared_ptr<Node> node) {
+    std::string switchType = "";
 
     for (size_t i = 0; i < node->getChildCount(); i++) {
         auto child = node->getChild(i);
