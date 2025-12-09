@@ -1,19 +1,14 @@
 #include "SemanticAnalyzer.h"
 #include <iostream>
 
-SemanticAnalyzer::SemanticAnalyzer() : hasErrors(false) {}
+SemanticAnalyzer::SemanticAnalyzer() {}
 
 void SemanticAnalyzer::analyze(std::shared_ptr<Node> root) {
     if (!root) {
         std::cerr << "Semantic Error: Empty Parse Tree\n";
     }
 
-    hasErrors = false;
     analyzeProgram(root);
-
-    if (!hasErrors) {
-        std::cout << "Semantic Analysis: OK!" << std::endl;
-    }
 }
 
 std::string SemanticAnalyzer::mapLanguageTypeToInternal(const std::string& langType) {
@@ -279,14 +274,11 @@ void SemanticAnalyzer::analyzeForStatement(std::shared_ptr<Node> node) {
 }
 
 void SemanticAnalyzer::analyzeSwitchStatement(std::shared_ptr<Node> node) {
-    std::string switchType = "";
+
 
     for (size_t i = 0; i < node->getChildCount(); i++) {
         auto child = node->getChild(i);
-        if (child->type == NodeType::EXPRESSION) {
-            switchType = analyzeExpression(child);
-        }
-        else if (child->type == NodeType::STARPATH_LIST) {
+        if (child->type == NodeType::STARPATH_LIST) {
             // Analyze each case
             for (size_t j = 0; j < child->getChildCount(); j++) {
                 auto caseNode = child->getChild(j);
@@ -554,7 +546,6 @@ std::string SemanticAnalyzer::inferBinaryOperationType(const std::string& leftTy
 }
 
 void SemanticAnalyzer::reportError(const std::string& message, int line, int col) {
-    hasErrors = true;
     std::cerr << "Semantic Error";
     if (line > 0) {
         std::cerr << " at line " << line;

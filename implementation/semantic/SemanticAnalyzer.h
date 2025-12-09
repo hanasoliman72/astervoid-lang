@@ -16,7 +16,6 @@ public:
 
 private:
     SymbolTable symbolTable;
-    bool hasErrors;
     std::unordered_map<std::shared_ptr<Node>, std::string> nodeTypes;
 
     // Type mapping from language keywords to internal types
