@@ -21,6 +21,8 @@ struct Symbol {
 // ================== Symbol Table ==================
 class SymbolTable {
 private:
+    // Key: variable name
+    // Value: the Symbol struct with all its details
     std::vector<std::unordered_map<std::string, Symbol>> scopes;
     int currentScope;
 
@@ -41,12 +43,6 @@ public:
 
     // Look up a symbol in all scopes (from current to global)
     Symbol* lookup(const std::string& name, int line, int col);
-
-    // Check if symbol exists in current scope only
-    bool existsInCurrentScope(const std::string& name);
-
-    // Get scope depth
-    int getScopeDepth() const;
 };
 
 #endif

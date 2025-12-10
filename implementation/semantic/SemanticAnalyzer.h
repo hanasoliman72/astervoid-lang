@@ -16,6 +16,7 @@ public:
 
 private:
     SymbolTable symbolTable;
+    // Stores the inferred type of each expression node in the parse tree
     std::unordered_map<std::shared_ptr<Node>, std::string> nodeTypes;
 
     // Type mapping from language keywords to internal types

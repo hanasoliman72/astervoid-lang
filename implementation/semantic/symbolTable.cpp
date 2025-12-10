@@ -44,20 +44,11 @@ Symbol* SymbolTable::lookup(const std::string& name, int line, int col) {
     // Search from innermost (current) to outermost (global) scope
     for (int i = (int)scopes.size() - 1; i >= 0; i--) {
         if (scopes[i].find(name) != scopes[i].end()) {
-            return &scopes[i].find(name)->second;
+            return &scopes[i].find(name)->second; // Return a pointer to that Symbol
         }
     }
 
     // Not found
     std::cerr << "Semantic Error: Undefined variable '" << name << "' at line " << line << std::endl;
     return nullptr;
-}
-
-bool SymbolTable::existsInCurrentScope(const std::string& name) {
-    auto& currentScopeMap = scopes.back();
-    return currentScopeMap.find(name) != currentScopeMap.end();
-}
-
-int SymbolTable::getScopeDepth() const {
-    return (int)scopes.size();
 }

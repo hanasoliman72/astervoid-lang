@@ -67,4 +67,4 @@ private:
     bool isFunctionDeclaration();
 };
 
-#endif // PARSER_H
+#endif

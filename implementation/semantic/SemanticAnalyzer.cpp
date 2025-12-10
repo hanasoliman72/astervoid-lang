@@ -5,9 +5,8 @@ SemanticAnalyzer::SemanticAnalyzer() {}
 
 void SemanticAnalyzer::analyze(std::shared_ptr<Node> root) {
     if (!root) {
-        std::cerr << "Semantic Error: Empty Parse Tree\n";
+        std::cout << "Semantic Error: Empty Parse Tree\n";
     }
-
     analyzeProgram(root);
 }
 
@@ -274,8 +273,6 @@ void SemanticAnalyzer::analyzeForStatement(std::shared_ptr<Node> node) {
 }
 
 void SemanticAnalyzer::analyzeSwitchStatement(std::shared_ptr<Node> node) {
-
-
     for (size_t i = 0; i < node->getChildCount(); i++) {
         auto child = node->getChild(i);
         if (child->type == NodeType::STARPATH_LIST) {
@@ -332,7 +329,6 @@ void SemanticAnalyzer::analyzeInputStatement(std::shared_ptr<Node> node) {
 }
 
 void SemanticAnalyzer::analyzeReturnStatement(std::shared_ptr<Node> node) {
-    // If there's a return expression, analyze it
     for (size_t i = 0; i < node->getChildCount(); i++) {
         auto child = node->getChild(i);
         if (child->type == NodeType::EXPRESSION) {
@@ -408,28 +404,23 @@ std::string SemanticAnalyzer::analyzeFactor(std::shared_ptr<Node> node) {
         if (node->value.find('.') != std::string::npos) {
             nodeTypes[node] = "float";
             return "float";
-        } else {
-            nodeTypes[node] = "int";
-            return "int";
         }
+        nodeTypes[node] = "int";
+        return "int";
     }
-    else if (node->token.type == TokenType::STAR) {
-        // String literal
+    if (node->token.type == TokenType::STAR) {
         nodeTypes[node] = "string";
         return "string";
     }
-    else if (node->token.type == TokenType::NEBULA) {
-        // Character literal
+    if (node->token.type == TokenType::NEBULA) {
         nodeTypes[node] = "char";
         return "char";
     }
-    else if (node->token.type == TokenType::STARLIGHT || node->token.type == TokenType::VOIDNESS) {
-        // Boolean literal
+    if (node->token.type == TokenType::STARLIGHT || node->token.type == TokenType::VOIDNESS) {
         nodeTypes[node] = "bool";
         return "bool";
     }
-    else if (node->token.type == TokenType::IDENTIFIER) {
-        // Variable or function call
+    if (node->token.type == TokenType::IDENTIFIER) {
         Symbol* sym = symbolTable.lookup(node->value, node->token.line, node->token.col);
         if (sym) {
             nodeTypes[node] = sym->type;
@@ -437,7 +428,7 @@ std::string SemanticAnalyzer::analyzeFactor(std::shared_ptr<Node> node) {
         }
         return "error";
     }
-    else if (node->getChildCount() > 0) {
+    if (node->getChildCount() > 0) {
         // Parenthesized expression or function call
         auto firstChild = node->getChild(0);
 
@@ -466,7 +457,6 @@ std::string SemanticAnalyzer::analyzeFactor(std::shared_ptr<Node> node) {
             return "int";
         }
     }
-
     return "error";
 }
 

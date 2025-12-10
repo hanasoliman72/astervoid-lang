@@ -54,9 +54,11 @@ enum class NodeType {
 // ================== Generic ASTNode ==================
 class Node {
 public:
-    NodeType type;
+    NodeType type; // Stores which type of node this is
     Token token;  // The token this node represents (for semantic analysis)
-    std::vector<std::shared_ptr<Node>> children;  // Child nodes
+    // std::shared_ptr (smart pointers) automatically manages memory
+    // when no references exist, the node is deleted.
+    std::vector<std::shared_ptr<Node>> children;
     std::string value;  // For storing literal values, type names, identifiers.
 
     Node(NodeType nodeType, const Token& tok = Token{TokenType::ERROR, "", "", 0, 0});
