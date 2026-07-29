@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/astervoid.jpg" alt="AsterVoidIDE Logo" width="200"/>
+</p>
+
 # 🌌 astervoid-lang
  
 > A custom programming language and compiler built from scratch as part of a Compiler Design course.
