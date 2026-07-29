@@ -33,6 +33,21 @@ compile_commands.json
 *.userossc
 *.sln.docstates
 
+# Qt
+*.pro.user
+*.pro.user.*
+build-*/
+*.o
+*.obj
+moc_*.cpp
+moc_*.h
+ui_*.h
+qrc_*.cpp
+Makefile*
+*.qm
+*.autosave
+.qmake.cache
+.qmake.stash
 
 cmake-build-debug
 CMakeLists.txt
